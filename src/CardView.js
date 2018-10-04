@@ -111,10 +111,24 @@ export default class CardView extends Component {
     maskCardNumber: false
   };
 
+  maskCard = (number) => {
+    const { maskCardNumber } = this.props;
+    let  maskResult = number
+    if (maskResult && maskCardNumber) {
+      maskResult = maskResult.replace(/\s/g, "")
+      const maskChar = '•••••••••'
+      const maskRegex = /^(\d{0,4})(\d{0,8})(\d*)/gi
+      const numberOfMasks = Math.min(Math.max(maskResult.length - 4, 0), 8)
+      const maskSubst = `$1 ${maskChar.slice(0,numberOfMasks).replace(/(•{4})/g, '$1 ').replace(/(^\s+|\s+$)/,'') } $3`
+      maskResult = maskResult.replace(maskRegex, maskSubst)
+    }
+    return maskResult
+  }
+
   render() {
     const { focused,
       brand, name, number, expiry, cvc, customIcons,
-      placeholder, imageFront, imageBack, scale, fontFamily, maskCardNumber } = this.props;
+      placeholder, imageFront, imageBack, scale, fontFamily } = this.props;
 
     const Icons = { ...defaultIcons, ...customIcons };
     const isAmex = brand === "american-express";
@@ -126,15 +140,7 @@ export default class CardView extends Component {
       { translateY: ((BASE_SIZE.height * (scale - 1) / 2)) },
     ] };
 
-    let maskResult = number
-    if (maskResult && maskCardNumber) {
-      maskResult = maskResult.replace(/\s/g, "")
-      const maskChar = '•••••••••'
-      const maskRegex = /^(\d{0,4})(\d{0,8})(\d*)/gi
-      const numberOfMasks = Math.min(Math.max(maskResult.length - 4, 0), 8)
-      const maskSubst = `$1 ${maskChar.slice(0,numberOfMasks).replace(/(•{4})/g, '$1 ').replace(/(^\s+|\s+$)/,'') } $3`
-      maskResult = maskResult.replace(maskRegex, maskSubst)
-    }
+    const maskResult = this.maskCard(number)
 
     return (
       <View style={[s.cardContainer, containerSize]}>
