@@ -92,6 +92,7 @@ export default class CardView extends Component {
     imageFront: PropTypes.number,
     imageBack: PropTypes.number,
     customIcons: PropTypes.object,
+    maskCardNumber: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -107,7 +108,22 @@ export default class CardView extends Component {
     fontFamily: Platform.select({ ios: "Courier", android: "monospace" }),
     imageFront: require("../images/card-front.png"),
     imageBack: require("../images/card-back.png"),
+    maskCardNumber: false
   };
+
+  maskCard = (number) => {
+    const { maskCardNumber } = this.props;
+    let  maskResult = number
+    if (maskResult && maskCardNumber) {
+      maskResult = maskResult.replace(/\s/g, "")
+      const maskChar = '•••••••••'
+      const maskRegex = /^(\d{0,4})(\d{0,8})(\d*)/gi
+      const numberOfMasks = Math.min(Math.max(maskResult.length - 4, 0), 8)
+      const maskSubst = `$1 ${maskChar.slice(0,numberOfMasks).replace(/(•{4})/g, '$1 ').replace(/(^\s+|\s+$)/,'') } $3`
+      maskResult = maskResult.replace(maskRegex, maskSubst)
+    }
+    return maskResult
+  }
 
   render() {
     const { focused,
@@ -124,6 +140,8 @@ export default class CardView extends Component {
       { translateY: ((BASE_SIZE.height * (scale - 1) / 2)) },
     ] };
 
+    const maskResult = this.maskCard(number)
+
     return (
       <View style={[s.cardContainer, containerSize]}>
         <FlipCard style={{ borderWidth: 0 }}
@@ -137,8 +155,8 @@ export default class CardView extends Component {
             source={imageFront}>
               <Image style={[s.icon]}
                 source={Icons[brand]} />
-              <Text style={[s.baseText, { fontFamily }, s.number, !number && s.placeholder, focused === "number" && s.focused]}>
-                { !number ? placeholder.number : number }
+              <Text style={[s.baseText, { fontFamily }, s.number, !maskResult && s.placeholder, focused === "number" && s.focused]}>
+                { !maskResult ? placeholder.number : maskResult }
               </Text>
               <Text style={[s.baseText, { fontFamily }, s.name, !name && s.placeholder, focused === "name" && s.focused]}
                 numberOfLines={1}>
